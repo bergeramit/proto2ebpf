@@ -86,7 +86,6 @@ def run_filter_demo(ebpf, interface='eth0'):
         #(if we want to print all the header print until \r\n\r\n)
         for i in range (payload_offset,len(packet_bytearray)-1):
             if (packet_bytearray[i]== 0x0A):
-            if (packet_bytearray[i-1] == 0x0D):
                 break
             print ("%c" % chr(packet_bytearray[i]), end = "")
         print("")
