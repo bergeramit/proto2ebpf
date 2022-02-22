@@ -12,6 +12,7 @@
 #python script uses bcc BPF Compiler Collection by iovisor (https://github.com/iovisor/bcc)
 #and prints on stdout the first line of the HTTP GET/POST request containing the url
 from bcc import BPF
+from protobuf_rule import ProtobufBasicRule
 
 template_bcc_code = '''
 #include <uapi/linux/ptrace.h>
@@ -172,3 +173,18 @@ int protobuf_filter(struct __sk_buff *skb) {
 
 def generate_ebpf_from_rule(rule):
     return BPF(text=template_bcc_code, debug=0)
+
+def generate_ebpf_from_protobuf(proto_class, rule):
+    '''
+    currently only support one level of protobuf class (cannot provide a protobuf-of-protobufs
+
+    @proto_class
+        the relavant protobuf class for the rule
+    @rule
+        Example rules:
+            ProtobufBasicRule: "person.email == 'joe@gmail.com'"
+            "search.query ~ '*dog' and search.page_number > 3"
+    '''
+    proto_rule = ProtobufBasicRule(proto_class, rule)
+    ebpf = generate_ebpf_from_rule(proto_rule)
+    return ebpf

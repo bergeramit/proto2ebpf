@@ -5,7 +5,7 @@ from sys import argv
 import socket
 import os
 
-def run_filter_demo(ebpf, interface='eth0'):
+def run_server_with_filter(ebpf, interface='eth0', server_processing=None):
     function_protobuf_filter = ebpf.load_func("protobuf_filter", BPF.SOCKET_FILTER)
 
     #create raw socket, bind it to interface
@@ -89,3 +89,6 @@ def run_filter_demo(ebpf, interface='eth0'):
                 break
             print ("%c" % chr(packet_bytearray[i]), end = "")
         print("")
+
+        # Forward the packet to the server app
+        server_processing(packet_bytearray[payload_offset:])
