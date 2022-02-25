@@ -3,9 +3,8 @@ from protobuf_ebpf_generator import generate_ebpf_from_protobuf
 from examples.search_pb2 import SearchRequest
 from server_app import parse_query_packet
 from load_ebpf_filter import run_server_with_filter
-
-def run_client_demo(interface):
-    pass
+from client_app import run_client_demo
+from server_app import run_server_demo
 
 def run_test_ebpf(role):
     search_query = SearchRequest(query=b'Dog', page_number=10)
@@ -19,8 +18,9 @@ def run_test_ebpf(role):
     if role == "client":
         run_client_demo(interface="lo")
     elif role == "server":
+        run_server_demo()
+    elif role == "set_filter":
         run_server_with_filter(ebpf, interface="lo", server_processing=parse_query_packet)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

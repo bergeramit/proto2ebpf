@@ -91,4 +91,4 @@ def run_server_with_filter(ebpf, interface='eth0', server_processing=None):
         print("")
 
         # Forward the packet to the server app
-        server_processing(packet_bytearray[payload_offset:])
+        # server_processing(packet_bytearray[payload_offset:])
