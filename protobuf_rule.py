@@ -24,19 +24,16 @@ class ProtobufBasicRule:
         if self.operator == '~':
             # Search for specific string
             _dict = {
-                "array_value": ", ".join([str(ord(c)) for c in self.value]),
+                "array_value": ", ".join([hex(ord(c)) for c in self.value]),
                 "pointer": pointer,
                 "array_size": len(self.value)
             }
             return '''
-                unsigned long target_value = {{ {array_value} }};
-                bool found = false;
-                for (i = 2; i < payload_length; i++) {{
-                    if (memcmp(&({pointer}[i]), target_value, {array_size}) == 0){{
-                        found = true;
+                for (i = 2; i < 10; i++) {{
+                    if ({pointer}[i] == {array_value}) {{
+                        goto DROP;
                     }}
-                }}
-                if (found) {{
-                    goto DROP;
                 }}'''.format(**_dict)
+            
+            # rule_defines = self.build_defines_from_value()
         raise Exception("CANNOT PARSE OPERATOR")

@@ -7,20 +7,22 @@ from client_app import run_client_demo
 from server_app import run_server_demo
 
 def run_test_ebpf(role):
+    if role == "client":
+        run_client_demo()
+        return
+
     search_query = SearchRequest(query=b'Dog', page_number=10)
-    ebpf = generate_ebpf_from_protobuf(search_query, "search_query.query ~ Dog")
+    ebpf = generate_ebpf_from_protobuf(search_query, "search_query.query ~ A")
     print("\n<Instruction for protobu handles>\n")
     print(f"search_query.SerializeToString().hex() -> {search_query.SerializeToString().hex()}")
     print(f"Use bytes.fromhex('{search_query.SerializeToString().hex()}') in order to send it in the network")
     print(f"Parse with search_query.ParseFromString(bytes.fromhex('{search_query.SerializeToString().hex()}'))")
     print("\n</Instruction for protobu handles>\n")
 
-    if role == "client":
-        run_client_demo()
-    elif role == "server_without_filter":
+    if role == "server_without_filter":
         run_server_demo()
     elif role == "server_with_filter":
-        server = Server(b'Dog', 1)
+        server = Server(b'AAAAAAAAAAA', 1)
         run_server_with_filter(ebpf, interface="lo", server=server)
 
 if __name__ == "__main__":

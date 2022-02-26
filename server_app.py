@@ -19,7 +19,7 @@ class Server:
 
     def process(self, packet):
         print(f"Got to server: {packet}")
-        search_query = SearchRequest(query=b'Dog', page_number=10)
+        search_query = SearchRequest(query=b'AAAAAAAA', page_number=10)
         search_query.ParseFromString(packet)
 
         should_keep = self.is_valid_protobuf(search_query)

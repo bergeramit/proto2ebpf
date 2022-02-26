@@ -22,6 +22,9 @@ template_bcc_code = '''
 
 #define IP_TCP 	6
 #define ETH_HLEN 14
+#define PROTOBUF_DEPTH 20
+
+{rule_defines}
 
 /*eBPF program.
   Filter IP and TCP packets, having payload not empty
@@ -80,11 +83,11 @@ int protobuf_filter(struct __sk_buff *skb) {{
 	payload_offset = ETH_HLEN + ip_header_length + tcp_header_length;
 	payload_length = ip->tlen - ip_header_length - tcp_header_length;
 
-	//load first 100 byte of payload into p (payload_array)
+	//load first 10 byte of payload into p (payload_array)
 	//direct access to skb not allowed
-	unsigned long p[100];
+	unsigned long p[PROTOBUF_DEPTH];
 	int i = 0;
-	for (i = 0; i < payload_length; i++) {{
+	for (i = 0; i < PROTOBUF_DEPTH; i++) {{
 		p[i] = load_byte(skb , payload_offset + i);
 	}}
 
@@ -95,17 +98,6 @@ int protobuf_filter(struct __sk_buff *skb) {{
 	}}
 
 	{handle_first_field_rule}
-
-	// SEARCH PROTBUF SHOULD_DROP PATTERN
-	if ((p[0] == 0xa) && (p[1] == 0x14) && (p[2] == 0x53) && (p[3] == 0x68)) {{
-		goto KEEP;
-	}}
-
-	// SEARCH PROTBUF SHOULD KEEP PATTERN
-	if ((p[0] == 0x0a) && (p[1] == 0x0f) && (p[2] == 0x53) && (p[3] == 0x68)) {{
-		goto KEEP;
-	}}
-	goto DROP;
 
 	//send packet to userspace returning -1
 KEEP:
@@ -122,10 +114,9 @@ def generate_ebpf_from_rule(rule):
 	print(f"Rule: {validate_rule}")
 	_dict = {
 		"first_field_number": rule.field_number,
-		"handle_first_field_rule": validate_rule
+		"handle_first_field_rule": validate_rule,
+		"rule_defines": ""
 	}
-	# import ipdb; ipdb.set_trace()
-	# print(f"template_bcc_code: {template_bcc_code}")
 	return BPF(text=template_bcc_code.format(**_dict), debug=0)
 
 def generate_ebpf_from_protobuf(proto_class, rule):
