@@ -31,15 +31,9 @@ class Server:
 
 def run_server_demo():
 
-    # Create socket
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind((SERVER_HOST, SERVER_PORT))
-    server_socket.listen(1)
-    print('Listening on port %s ...' % SERVER_PORT)
     # Wait for client connections
-    process_query = Server(b'template', 1)
-    client_connection, _ = server_socket.accept()
+    server = Server(b'template', 1)
+    client_connection, _ = server.sock.accept()
     print(f"{datetime.datetime.now()}: Started Session")
     while True:    
 
@@ -49,8 +43,8 @@ def run_server_demo():
         if not request:
             break
 
-        process_query.process(request)
+        server.process(request)
 
     # Close socket
     print('Closing Server...')
-    server_socket.close()
+    server.sock.close()
