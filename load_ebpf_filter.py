@@ -21,7 +21,7 @@ def run_server_with_filter(ebpf, interface='eth0', server=None):
     sock.setblocking(True)
 
     # Accept TCP from client to start test    
-    server.sock.accept()
+    client_connection, _ = server.sock.accept()
     print(f"{datetime.datetime.now()}: Started Session")
 
     while 1:

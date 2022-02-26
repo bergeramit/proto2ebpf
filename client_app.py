@@ -6,7 +6,6 @@ def generate_query_packet(query, page_number):
     search_query = SearchRequest(query=query, page_number=page_number)
     return search_query.SerializeToString()
 
-
 def run_client_demo():
     client = socket.socket()
     client.connect(("0.0.0.0", 8000))
@@ -16,5 +15,6 @@ def run_client_demo():
         print(f"Sending {should_filter_protbuf_packet.hex()}")
         client.send(should_filter_protbuf_packet)
         time.sleep(0.01)
-        # client.send(should_process)
-        # time.sleep(0.01)
+        print(f"Sending {should_process.hex()}")
+        client.send(should_process)
+        time.sleep(0.01)

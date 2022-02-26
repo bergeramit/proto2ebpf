@@ -21,10 +21,7 @@ def run_test_ebpf(role):
         run_server_demo()
     elif role == "server_with_filter":
         server = Server(b'Dog', 1)
-        try:
-            run_server_with_filter(ebpf, interface="lo", server=server)
-        except Exception:
-            server.sock.close()
+        run_server_with_filter(ebpf, interface="lo", server=server)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

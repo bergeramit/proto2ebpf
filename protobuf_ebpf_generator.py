@@ -87,8 +87,13 @@ int protobuf_filter(struct __sk_buff *skb) {
 		p[i] = load_byte(skb , payload_offset + i);
 	}
 
-	// SEARCH PROTBUG PATTERN
+	// SEARCH PROTBUF SHOULD_DROP PATTERN
 	if ((p[0] == 0xa) && (p[1] == 0x14) && (p[2] == 0x53) && (p[3] == 0x68)) {
+		goto KEEP;
+	}
+
+	// SEARCH PROTBUF SHOULD KEEP PATTERN
+	if ((p[0] == 0x0a) && (p[1] == 0x0f) && (p[2] == 0x53) && (p[3] == 0x68)) {
 		goto KEEP;
 	}
 	goto DROP;
