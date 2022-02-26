@@ -1,11 +1,11 @@
 from __future__ import print_function
 from bcc import BPF
-from sys import argv
+import datetime
 
 import socket
 import os
 
-def run_server_with_filter(ebpf, interface='eth0', server_processing=None):
+def run_server_with_filter(ebpf, interface='eth0', server=None):
     function_protobuf_filter = ebpf.load_func("protobuf_filter", BPF.SOCKET_FILTER)
 
     #create raw socket, bind it to interface
@@ -19,6 +19,10 @@ def run_server_with_filter(ebpf, interface='eth0', server_processing=None):
     sock = socket.fromfd(socket_fd,socket.PF_PACKET,socket.SOCK_RAW,socket.IPPROTO_IP)
     #set it as blocking socket
     sock.setblocking(True)
+
+    # Accept TCP from client to start test    
+    server.sock.accept()
+    print(f"{datetime.datetime.now()}: Started Session")
 
     while 1:
         #retrieve raw packet from socket
@@ -84,11 +88,11 @@ def run_server_with_filter(ebpf, interface='eth0', server_processing=None):
         #print first line of the HTTP GET/POST request
         #line ends with 0xOD 0xOA (\r\n)
         #(if we want to print all the header print until \r\n\r\n)
-        for i in range (payload_offset,len(packet_bytearray)-1):
-            if (packet_bytearray[i]== 0x0A):
-                break
-            print ("%c" % chr(packet_bytearray[i]), end = "")
-        print("")
+        # for i in range (payload_offset,len(packet_bytearray)-1):
+        #     if (packet_bytearray[i]== 0x0A):
+        #         break
+        #     print ("%c" % chr(packet_bytearray[i]), end = "")
+        # print("")
 
         # Forward the packet to the server app
-        # server_processing(packet_bytearray[payload_offset:])
+        server.process(packet_bytearray[payload_offset:])

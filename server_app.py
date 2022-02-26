@@ -1,10 +1,35 @@
 import socket
+import datetime
 from examples.search_pb2 import SearchRequest
 
+# Define socket host and port
+SERVER_HOST = '0.0.0.0'
+SERVER_PORT = 8000
+
+class Server:
+    def __init__(self, template_query, template_page_number) -> None:
+        self.search_query = SearchRequest(query=template_query, page_number=template_page_number)
+        self.sock = socket.socket()
+        self.sock.bind((SERVER_HOST, SERVER_PORT))
+        self.sock.listen(1)
+        print('Listening on port %s ...' % SERVER_PORT)
+
+    def is_valid_protobuf(self, search_query):
+        return True
+
+    def process(self, packet):
+        print(f"Got to server: {packet}")
+        search_query = SearchRequest(query=b'Dog', page_number=10)
+        search_query.ParseFromString(packet)
+
+        should_keep = self.is_valid_protobuf(search_query)
+        if should_keep:
+            print(f"{datetime.datetime.now()}: Handled!")
+        else:
+            print(f"{datetime.datetime.now()}: Manually Dropped")
+
+
 def run_server_demo():
-    # Define socket host and port
-    SERVER_HOST = '0.0.0.0'
-    SERVER_PORT = 8000
 
     # Create socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,31 +37,20 @@ def run_server_demo():
     server_socket.bind((SERVER_HOST, SERVER_PORT))
     server_socket.listen(1)
     print('Listening on port %s ...' % SERVER_PORT)
+    # Wait for client connections
+    process_query = Server(b'template', 1)
+    client_connection, _ = server_socket.accept()
+    print(f"{datetime.datetime.now()}: Started Session")
     while True:    
-        # Wait for client connections
-        client_connection, client_address = server_socket.accept()
 
         # Get the client request
-        request = client_connection.recv(1024).decode()
-        print(request)
+        # search_query.ParseFromString()
+        request = client_connection.recv(1024)
+        if not request:
+            break
 
-        # Send HTTP response
-        response = 'HTTP/1.0 200 OK\n\nHello World'
-        client_connection.sendall(response.encode())
-        client_connection.close()
+        process_query.process(request)
 
     # Close socket
+    print('Closing Server...')
     server_socket.close()
-
-def parse_query_packet(packet):
-    try:
-        server_sock = socket.socket()
-        server_sock.bind(("0.0.0.0", 8000))
-        server_sock.listen()
-
-        search_query = SearchRequest(query=b'Dog', page_number=10)
-        search_query.ParseFromString(packet)
-        print(f"Got packet at server: search_query.SerializeToString().hex() -> {search_query.SerializeToString().hex()}")
-        print(f"Handled")
-    except Exception:
-        print("Error in parsing protobuf!")

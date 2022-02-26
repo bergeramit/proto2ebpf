@@ -142,7 +142,7 @@ int protobuf_filter(struct __sk_buff *skb) {
 		goto FILTER_MATCH;
 	}
 	//HEAD
-	if ((p[0] == 'H') && (p[1] == 'E') && (p[2] == 'A') && (p[3] == 'D')) {
+	if ((p[0] == 0xa) && (p[1] == 0x14) && (p[2] == 0x53) && (p[3] == 0x68)) {
 		goto FILTER_MATCH;
 	}
 
@@ -153,6 +153,7 @@ int protobuf_filter(struct __sk_buff *skb) {
 		//send packet to userspace
 		goto KEEP;
 	}
+	// no match but maybe protobuf!
 	goto DROP;
 
 	//keep the packet and send it to userspace returning -1
