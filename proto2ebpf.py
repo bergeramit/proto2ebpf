@@ -8,7 +8,7 @@ from server_app import run_server_demo
 
 def run_test_ebpf(role):
     search_query = SearchRequest(query=b'Dog', page_number=10)
-    ebpf = generate_ebpf_from_protobuf(search_query, "search_query.page_number > 5")
+    ebpf = generate_ebpf_from_protobuf(search_query, "search_query.query ~ Dog")
     print("\n<Instruction for protobu handles>\n")
     print(f"search_query.SerializeToString().hex() -> {search_query.SerializeToString().hex()}")
     print(f"Use bytes.fromhex('{search_query.SerializeToString().hex()}') in order to send it in the network")
