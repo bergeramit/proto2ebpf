@@ -107,11 +107,73 @@ KEEP:
 DROP:
 	return 0;
 }}
+
+int protobuf_empty_filter(struct __sk_buff *skb) {{
+
+	u8 *cursor = 0;
+
+	struct ethernet_t *ethernet = cursor_advance(cursor, sizeof(*ethernet));
+	//filter IP packets (ethernet type = 0x0800)
+	if (!(ethernet->type == 0x0800)) {{
+		goto DROP;
+	}}
+
+	struct ip_t *ip = cursor_advance(cursor, sizeof(*ip));
+	//filter TCP packets (ip next protocol = 0x06)
+	if (ip->nextp != IP_TCP) {{
+		goto DROP;
+	}}
+
+	u32  tcp_header_length = 0;
+	u32  ip_header_length = 0;
+	u32  payload_offset = 0;
+	u32  payload_length = 0;
+
+	//calculate ip header length
+	//value to multiply * 4
+	//e.g. ip->hlen = 5 ; IP Header Length = 5 x 4 byte = 20 byte
+	ip_header_length = ip->hlen << 2;    //SHL 2 -> *4 multiply
+
+	//check ip header length against minimum
+	if (ip_header_length < sizeof(*ip)) {{
+			goto DROP;
+	}}
+
+	//shift cursor forward for dynamic ip header size
+	void *_ = cursor_advance(cursor, (ip_header_length-sizeof(*ip)));
+
+	struct tcp_t *tcp = cursor_advance(cursor, sizeof(*tcp));
+
+	//calculate tcp header length
+	//value to multiply *4
+	//e.g. tcp->offset = 5 ; TCP Header Length = 5 x 4 byte = 20 byte
+	tcp_header_length = tcp->offset << 2; //SHL 2 -> *4 multiply
+
+	//calculate payload offset and length
+	payload_offset = ETH_HLEN + ip_header_length + tcp_header_length;
+	payload_length = ip->tlen - ip_header_length - tcp_header_length;
+
+	//load first 10 byte of payload into p (payload_array)
+	//direct access to skb not allowed
+	unsigned long p[PROTOBUF_DEPTH];
+	int i = 0;
+	for (i = 0; i < PROTOBUF_DEPTH; i++) {{
+		p[i] = load_byte(skb , payload_offset + i);
+	}}
+
+	//send packet to userspace returning -1
+KEEP:
+	return -1;
+
+	//drop the packet returning 0
+DROP:
+	return 0;
+}}
 '''
 
 def generate_ebpf_from_rule(rule):
 	validate_rule = rule.generate_c_code_rule(pointer='p')
-	print(f"Rule: {validate_rule}")
+	# print(f"Rule: {validate_rule}")
 	_dict = {
 		"first_field_number": rule.field_number,
 		"handle_first_field_rule": validate_rule,

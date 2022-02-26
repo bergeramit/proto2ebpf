@@ -20,10 +20,11 @@ def run_test_ebpf(role):
     print("\n</Instruction for protobu handles>\n")
 
     if role == "server_without_filter":
-        run_server_demo()
+        server = Server(b'AAAAAAAAAAA', 1, use_ebpf_smart_filter=False)
     elif role == "server_with_filter":
-        server = Server(b'AAAAAAAAAAA', 1)
-        run_server_with_filter(ebpf, interface="lo", server=server)
+        server = Server(b'AAAAAAAAAAA', 1, use_ebpf_smart_filter=True)
+    
+    run_server_with_filter(ebpf, interface="lo", server=server)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

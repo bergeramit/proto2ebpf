@@ -20,7 +20,6 @@ class ProtobufBasicRule:
         self.value = match_rule_pattern.group('value')
 
     def generate_c_code_rule(self, pointer):
-        print(f"Pointer: {pointer}")
         if self.operator == '~':
             # Search for specific string
             _dict = {

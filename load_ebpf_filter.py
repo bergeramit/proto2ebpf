@@ -6,7 +6,10 @@ import socket
 import os
 
 def run_server_with_filter(ebpf, interface='eth0', server=None):
-    function_protobuf_filter = ebpf.load_func("protobuf_filter", BPF.SOCKET_FILTER)
+    if server.use_ebpf_smart_filter:
+        function_protobuf_filter = ebpf.load_func("protobuf_filter", BPF.SOCKET_FILTER)
+    else:
+        function_protobuf_filter = ebpf.load_func("protobuf_empty_filter", BPF.SOCKET_FILTER)
 
     #create raw socket, bind it to interface
     #attach bpf program to socket created
@@ -22,6 +25,7 @@ def run_server_with_filter(ebpf, interface='eth0', server=None):
 
     # Accept TCP from client to start test    
     client_connection, _ = server.sock.accept()
+    total_valid_amount = 1
     print(f"{datetime.datetime.now()}: Started Session")
 
     while 1:
@@ -85,14 +89,5 @@ def run_server_with_filter(ebpf, interface='eth0', server=None):
         #calculate payload offset
         payload_offset = ETH_HLEN + ip_header_length + tcp_header_length
 
-        #print first line of the HTTP GET/POST request
-        #line ends with 0xOD 0xOA (\r\n)
-        #(if we want to print all the header print until \r\n\r\n)
-        # for i in range (payload_offset,len(packet_bytearray)-1):
-        #     if (packet_bytearray[i]== 0x0A):
-        #         break
-        #     print ("%c" % chr(packet_bytearray[i]), end = "")
-        # print("")
-
         # Forward the packet to the server app
-        server.process(packet_bytearray[payload_offset:])
+        total_valid_amount = server.process(packet_bytearray[payload_offset:], total_valid_amount)
